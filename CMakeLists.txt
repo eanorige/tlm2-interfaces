@@ -44,15 +44,15 @@ if(TARGET scc-sysc)
     target_compile_options(${PROJECT_NAME} PRIVATE -Wno-deprecated)
     target_link_libraries(${PROJECT_NAME} PUBLIC scc-sysc)
 else()
-    add_library(${PROJECT_NAME} INTERFACE) 
-    target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}) 
-    target_link_libraries(${PROJECT_NAME} SystemC::systemc)
+    add_library(${PROJECT_NAME} SHARED chi/chi_tlm.cpp)
+    target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(${PROJECT_NAME} PUBLIC SystemC::systemc)
 endif()
 
-set_target_properties(${PROJECT_NAME} PROPERTIES
-      VERSION ${PROJECT_VERSION}
-      FRAMEWORK FALSE
-)
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#      VERSION ${PROJECT_VERSION}
+#      FRAMEWORK FALSE
+#)
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}${SCC_LIBRARY_DIR_MODIFIER}
