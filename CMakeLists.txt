@@ -55,6 +55,7 @@ else()
     add_library(${PROJECT_NAME} SHARED chi/chi_tlm.cpp)
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(${PROJECT_NAME} PUBLIC SystemC::systemc)
+    set(TLM-INTERFACES_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/tlm-interfaces)
 endif()
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES
