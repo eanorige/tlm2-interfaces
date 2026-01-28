@@ -16,6 +16,7 @@
 #pragma once
 
 #include <axi/pe/axi_target_pe.h>
+#include "target_info_if.h"
 
 //! TLM2.0 components modeling AXI/ACE
 namespace axi {
@@ -70,7 +71,7 @@ protected:
  */
 template <unsigned int BUSWIDTH = 32, typename TYPES = axi::axi_protocol_types, int N = 1,
           sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
-class reordering_target : public sc_core::sc_module {
+class reordering_target : public sc_core::sc_module, public target_info_if {
 public:
     using base = axi_target_pe;
     using payload_type = base::payload_type;
@@ -105,8 +106,10 @@ public:
 
     reordering_target& operator=(reordering_target&&) = delete;
 
+    size_t get_outstanding_tx_count() override { return pe.getAllOutStandingTx();}
+
 protected:
-    void end_of_elaboration(){
+    void end_of_elaboration() override {
         auto* ifs = sckt.get_base_port().get_interface(0);
         sc_assert(ifs!=nullptr);
         pe.set_bw_interface(ifs);

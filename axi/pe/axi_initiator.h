@@ -17,8 +17,12 @@
 #pragma once
 
 #include <axi/axi_tlm.h>
+#include <axi/fsm/protocol_fsm.h>
+#include <tlm/scc/pe/intor_if.h>
 #include <scc/ordered_semaphore.h>
 #include <scc/peq.h>
+#include <scc/sc_variable.h>
+#include <cci_configuration>
 #include <systemc>
 #include <tlm_utils/peq_with_get.h>
 #include <tuple>
@@ -27,13 +31,21 @@
 namespace axi {
 namespace pe {
 
-class axi_initiator_b : public sc_core::sc_module, public axi::ace_bw_transport_if<axi::axi_protocol_types> {
+class axi_initiator_b :
+        public sc_core::sc_module,
+        public axi::ace_bw_transport_if<axi::axi_protocol_types>,
+        public tlm::scc::pe::intor_fw_b
+{
 public:
-    enum class flavor_e { AXI, ACEL, ACE };
+
     using payload_type = axi::axi_protocol_types::tlm_payload_type;
     using phase_type = axi::axi_protocol_types::tlm_phase_type;
 
     sc_core::sc_in<bool> clk_i{"clk_i"};
+
+    sc_core::sc_export<tlm::scc::pe::intor_fw_b> fw_i{"fw_i"};
+
+    sc_core::sc_port<tlm::scc::pe::intor_bw_b, 1, sc_core::SC_ZERO_OR_MORE_BOUND> bw_o{"bw_o"};
 
     void b_snoop(payload_type& trans, sc_core::sc_time& t) override;
 
@@ -51,28 +63,14 @@ public:
      * @param trans the transaction to send
      * @param blocking execute in using the blocking interface
      */
-    void transport(payload_type& trans, bool blocking);
-    /**
-     * @brief Set the snoop callback function
-     *
-     * This callback is invoked once a snoop transaction arrives. This function shall return the latency
-     * for the snoop response. If the response is std::numeric_limits<unsigned>::max() no snoop response will be
-     * triggered. This needs to be done by a call to snoop_resp()
-     *
-     * @todo refine API
-     * @todo handing in a pointer is a hack to work around a bug in gcc 4.8 not allowing to copy std::function objects
-     * and should be fixed
-     *
-     * @param cb the callback function
-     */
-    void set_snoop_cb(std::function<unsigned(payload_type& trans)>* cb) { snoop_cb = cb; }
+    void transport(payload_type& trans, bool blocking) override;
     /**
      * @brief triggers a non-blocking snoop response if the snoop callback does not do so.
      *
      * @param trans
      * @param sync when true send response with next rising clock edge otherwise send immediately
      */
-    void snoop_resp(payload_type& trans, bool sync = false);
+    void snoop_resp(payload_type& trans, bool sync = false) override;
 
     axi_initiator_b(sc_core::sc_module_name nm, sc_core::sc_port_b<axi::axi_fw_transport_if<axi_protocol_types>>& port,
                     size_t transfer_width, flavor_e flavor);
@@ -92,25 +90,40 @@ public:
     // AXI4 does not allow write data interleaving, and ncore3 only supports AXI4.
     // However, AXI3 allows data interleaving and there may be support for AXI3 in Symphony, so keep it configurable in
     // the testbench.
-    sc_core::sc_attribute<bool> data_interleaving{"data_interleaving", false};
+    cci::cci_param<bool> data_interleaving{"data_interleaving", false};
     //! Read address valid to next read address valid
-    sc_core::sc_attribute<unsigned> artv{"artv", 1};
+    cci::cci_param<unsigned> artv{"artv", 1};
     //! Write address valid to next write address valid
-    sc_core::sc_attribute<unsigned> awtv{"awtv", 1};
+    cci::cci_param<unsigned> awtv{"awtv", 1};
     //! Write data handshake to next beat valid
-    sc_core::sc_attribute<unsigned> wbv{"wbv", 1};
+    cci::cci_param<unsigned> wbv{"wbv", 1};
     //! Read data valid to same beat ready
-    sc_core::sc_attribute<unsigned> rbr{"rbr", 0};
+    cci::cci_param<unsigned> rbr{"rbr", 0};
     //! Write response valid to ready
-    sc_core::sc_attribute<unsigned> br{"br", 0};
+    cci::cci_param<unsigned> br{"br", 0};
     //! Read last data handshake to acknowledge
-    sc_core::sc_attribute<unsigned> rla{"rla", 1};
+    cci::cci_param<unsigned> rla{"rla", 1};
     //! Write response handshake to acknowledge
-    sc_core::sc_attribute<unsigned> ba{"ba", 1};
+    cci::cci_param<unsigned> ba{"ba", 1};
     //! Quirks enable
-    sc_core::sc_attribute<bool> enable_id_serializing{"enable_id_serializing", false};
+    cci::cci_param<bool> enable_id_serializing{"enable_id_serializing", false};
     //! number of snoops which can be handled
-    sc_core::sc_attribute<unsigned> outstanding_snoops{"outstanding_snoops", 8};
+    cci::cci_param<unsigned> outstanding_snoops{"outstanding_snoops", 8};
+
+    /**
+     * @brief register a callback for a certain time point
+     *
+     * This function allows to register a callback for certain time points of a transaction
+     * (see #axi::fsm::protocol_time_point_e). The callback will be invoked after the FSM-actions are executed.
+     *
+     * @param e the timepoint
+     * @param cb the callback taking a reference to the transaction and a bool indicating a snoop if true
+     */
+    void add_protocol_cb(axi::fsm::protocol_time_point_e e, std::function<void(payload_type&, bool)> cb) {
+        assert(e < axi::fsm::CB_CNT);
+        protocol_cb[e] = cb;
+    }
+
 
 protected:
     unsigned calculate_beats(payload_type& p) {
@@ -125,8 +138,6 @@ protected:
     const flavor_e flavor;
 
     sc_core::sc_port_b<axi::axi_fw_transport_if<axi_protocol_types>>& socket_fw;
-
-    std::function<unsigned(payload_type& trans)>* snoop_cb{nullptr};
 
     struct tx_state {
         payload_type* active_tx{nullptr};
@@ -149,6 +160,11 @@ protected:
 
     sc_core::sc_time clk_period{10, sc_core::SC_NS};
 
+    scc::sc_variable<unsigned> rd_waiting{"RdWaiting", 0};
+    scc::sc_variable<unsigned> wr_waiting{"WrWaiting", 0};
+    scc::sc_variable<unsigned> rd_outstanding{"RdOutstanding", 0};
+    scc::sc_variable<unsigned> wr_outstanding{"WrOutstanding", 0};
+
 private:
     sc_core::sc_clock* clk_if{nullptr};
     void end_of_elaboration() override;
@@ -160,6 +176,8 @@ private:
     unsigned m_clock_counter{0};
     unsigned m_prev_clk_cnt{0};
     unsigned snoops_in_flight{0};
+
+    std::array<std::function<void(payload_type&, bool)>, axi::fsm::CB_CNT> protocol_cb;
 };
 
 /**
