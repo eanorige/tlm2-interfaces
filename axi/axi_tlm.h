@@ -23,6 +23,9 @@
 
 //! TLM2.0 components modeling AXI/ACE
 namespace axi {
+
+enum class flavor_e { AXI, ACEL, ACE };
+
 /**
  * helper function to allow SFINAE
  */
@@ -516,22 +519,52 @@ struct axi4 : public request {
      * @brief set the read allocate/write other allocate bit of AxCACHE (AxCACHE[2])
      * @param the read_other_allocate bit
      */
-    void set_read_other_allocate(bool = true);
+    void set_other_allocate(bool = true);
     /**
      * @brief get the read allocate/write other allocate bit of AxCACHE (AxCACHE[2])
      * return the read_other_allocate bit
      */
-    bool is_read_other_allocate() const;
+    bool is_other_allocate() const;
     /**
      * @brief set the write allocate/read other allocate bit of AxCACHE (AxCACHE[3])
      * @param the write_other_allocate bit
      */
-    void set_write_other_allocate(bool = true);
+    void set_allocate(bool = true);
     /**
      * @brief get the write allocate/read other allocate bit of AxCACHE (AxCACHE[3])
      * return the write_other_allocate bit
      */
-    bool is_write_other_allocate() const;
+    bool is_allocate() const;
+    /**
+     * @brief set the modifiable bit of AxCACHE (AxCACHE[1])
+     * @param the modifiable bit
+     */
+    void set_cacheable(bool = true);
+    /**
+     * @brief get the modifiable bit of AxCACHE (AxCACHE[1])
+     * return the modifiable bit
+     */
+    bool is_cacheable() const;
+    /**
+     * @brief set the read allocate/write other allocate bit of AxCACHE (AxCACHE[2])
+     * @param the read_other_allocate bit
+     */
+    void set_read_allocate(bool = true);
+    /**
+     * @brief get the read allocate/write other allocate bit of AxCACHE (AxCACHE[2])
+     * return the read_other_allocate bit
+     */
+    bool is_read_allocate() const;
+    /**
+     * @brief set the write allocate/read other allocate bit of AxCACHE (AxCACHE[3])
+     * @param the write_other_allocate bit
+     */
+    void set_write_allocate(bool = true);
+    /**
+     * @brief get the write allocate/read other allocate bit of AxCACHE (AxCACHE[3])
+     * return the write_other_allocate bit
+     */
+    bool is_write_allocate() const;
 };
 /**
  * The ACE specific interpretation of request data members extending the AXI4 one
@@ -891,6 +924,14 @@ struct axi_protocol_types {
 /**
  * definition of the additional protocol phases
  */
+enum SC_API tlm_phase_enum
+{
+  UNINITIALIZED_PHASE=0,
+  BEGIN_REQ= tlm::BEGIN_REQ,
+  END_REQ= tlm::END_REQ,
+  BEGIN_RESP= tlm::BEGIN_RESP,
+  END_RESP= tlm::END_RESP
+};
 DECLARE_EXTENDED_PHASE(BEGIN_PARTIAL_REQ);
 DECLARE_EXTENDED_PHASE(END_PARTIAL_REQ);
 DECLARE_EXTENDED_PHASE(BEGIN_PARTIAL_RESP);
@@ -921,7 +962,14 @@ template <typename TYPES = axi_protocol_types> using ace_fw_transport_if = tlm::
 template <typename TYPES = axi_protocol_types>
 class ace_bw_transport_if : public tlm::tlm_bw_transport_if<TYPES>,
                             public virtual bw_blocking_transport_if<typename TYPES::tlm_payload_type> {};
-/**
+
+#if SC_VERSION_MAJOR<3
+    using type_index = sc_core::sc_type_index;
+#else
+    using type_index = std::type_index;
+#endif
+
+    /**
  * AXI initiator socket class using payloads carrying AXI3 or AXi4 extensions
  */
 template <unsigned int BUSWIDTH = 32, typename TYPES = axi_protocol_types, int N = 1,
@@ -948,9 +996,9 @@ struct axi_initiator_socket
      */
     const char* kind() const override { return "axi_initiator_socket"; }
     // not the right version but we assume TLM is always bundled with SystemC
-#if SYSTEMC_VERSION >= 20181013 // ((TLM_VERSION_MAJOR > 2) || (TLM_VERSION==2 && TLM_VERSION_MINOR>0) ||(TLM_VERSION==2
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC) // ((TLM_VERSION_MAJOR > 2) || (TLM_VERSION==2 && TLM_VERSION_MINOR>0) ||(TLM_VERSION==2
                                 // && TLM_VERSION_MINOR>0 && TLM_VERSION_PATCH>4))
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 /**
@@ -980,9 +1028,9 @@ struct axi_target_socket
      */
     const char* kind() const override { return "axi_target_socket"; }
     // not the right version but we assume TLM is always bundled with SystemC
-#if SYSTEMC_VERSION >= 20181013 // ((TLM_VERSION_MAJOR > 2) || (TLM_VERSION==2 && TLM_VERSION_MINOR>0) ||(TLM_VERSION==2
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC) // ((TLM_VERSION_MAJOR > 2) || (TLM_VERSION==2 && TLM_VERSION_MINOR>0) ||(TLM_VERSION==2
                                 // && TLM_VERSION_MINOR>0 && TLM_VERSION_PATCH>4))
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 /**
@@ -1011,12 +1059,12 @@ struct ace_initiator_socket
      * @return the kind string
      */
     const char* kind() const override { return "axi_initiator_socket"; }
-#if SYSTEMC_VERSION >= 20181013 // not the right version but we assume TLM is always bundled with SystemC
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC) // not the right version but we assume TLM is always bundled with SystemC
     /**
      * @brief get the type of protocol
      * @return the kind typeid
      */
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 /**
@@ -1046,12 +1094,12 @@ struct ace_target_socket
      */
     const char* kind() const override { return "axi_target_socket"; }
     // not the right version but we assume TLM is always bundled with SystemC
-#if SYSTEMC_VERSION >= 20181013 // not the right version but we assume TLM is always bundled with SystemC
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC) // not the right version but we assume TLM is always bundled with SystemC
     /**
      * @brief get the type of protocol
      * @return the kind typeid
      */
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 /*****************************************************************************
@@ -1340,23 +1388,50 @@ inline void axi4::set_modifiable(bool cacheable) {
 
 inline bool axi4::is_modifiable() const { return (cache & CACHEABLE) != 0; }
 
-inline void axi4::set_read_other_allocate(bool roa) {
+inline void axi4::set_allocate(bool roa) {
     if(roa)
         cache |= WA;
     else
         cache &= ~WA;
 }
 
-inline bool axi4::is_read_other_allocate() const { return (cache & WA) != 0; }
+inline bool axi4::is_allocate() const { return (cache & WA) != 0; }
 
-inline void axi4::set_write_other_allocate(bool woa) {
+inline void axi4::set_other_allocate(bool woa) {
     if(woa)
         cache |= RA;
     else
         cache &= ~RA;
 }
 
-inline bool axi4::is_write_other_allocate() const { return (cache & RA) != 0; }
+inline bool axi4::is_other_allocate() const { return (cache & RA) != 0; }
+
+inline void axi4::set_cacheable(bool cacheable) {
+    if(cacheable)
+        cache |= CACHEABLE;
+    else
+        cache &= ~CACHEABLE;
+}
+
+inline bool axi4::is_cacheable() const { return (cache & CACHEABLE) != 0; }
+
+inline void axi4::set_write_allocate(bool roa) {
+    if(roa)
+        cache |= WA;
+    else
+        cache &= ~WA;
+}
+
+inline bool axi4::is_write_allocate() const { return (cache & WA) != 0; }
+
+inline void axi4::set_read_allocate(bool woa) {
+    if(woa)
+        cache |= RA;
+    else
+        cache &= ~RA;
+}
+
+inline bool axi4::is_read_allocate() const { return (cache & RA) != 0; }
 
 inline void request::reset() {
     length = 0;

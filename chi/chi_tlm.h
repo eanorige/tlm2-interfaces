@@ -38,9 +38,8 @@ template <typename E> inline E into(typename std::underlying_type<E>::type t);
  * @param t
  * @return
  */
-template <
-typename E, typename ULT = typename std::underlying_type<E>::type,
-typename X = typename std::enable_if<std::is_enum<E>::value && !std::is_convertible<E, ULT>::value, bool>::type>
+template <typename E, typename ULT = typename std::underlying_type<E>::type,
+          typename X = typename std::enable_if<std::is_enum<E>::value && !std::is_convertible<E, ULT>::value, bool>::type>
 inline constexpr ULT to_int(E t) {
     return static_cast<typename std::underlying_type<E>::type>(t);
 }
@@ -62,251 +61,270 @@ inline std::ostream& operator<<(std::ostream& os, E e) {
     return os;
 }
 
+std::ostream& operator<<(std::ostream& os, tlm::tlm_generic_payload const& t);
+
 //  REQ channel request type enumeration class
 enum class req_optype_e : uint8_t {
     // Table 12-14 REQ channel opcodes and Page No:318
     ReqLCrdReturn = 0x00,
-            ReadShared = 0x01,
-            ReadClean = 0x02,
-            ReadOnce = 0x03,
-            ReadNoSnp = 0x04,
-            PCrdReturn = 0x05,
-            Reserved = 0x06,
-            ReadUnique = 0x07,
-            CleanShared = 0x08,
-            CleanInvalid = 0x09,
-            MakeInvalid = 0x0A,
-            CleanUnique = 0x0B,
-            MakeUnique = 0x0C,
-            Evict = 0x0D,
-            EOBarrier = 0x0E,
-            ECBarrier = 0x0F,
-            // RESERVED    0x10
-            ReadNoSnpSep = 0x11, //CHI-E
-            // RESERVED    0x12
-            CleanSharedPersistSep = 0x13, //CHI-E
-            DVMOp = 0x14,
-            WriteEvictFull = 0x15,
-            WriteCleanPtl = 0x16, // As per CHI issue-A
-            WriteCleanFull = 0x17,
-            WriteUniquePtl = 0x18,
-            WriteUniqueFull = 0x19,
-            WriteBackPtl = 0x1A,
-            WriteBackFull = 0x1B,
-            WriteNoSnpPtl = 0x1C,
-            WriteNoSnpFull = 0x1D,
-            // RESERVED    0x1E-0x1F
-            WriteUniqueFullStash = 0x20,
-            WriteUniquePtlStash = 0x21,
-            StashOnceShared = 0x22,
-            StashOnceUnique = 0x23,
-            ReadOnceCleanInvalid = 0x24,
-            ReadOnceMakeInvalid = 0x25,
-            ReadNotSharedDirty = 0x26,
-            CleanSharedPersist = 0x27,
-            AtomicStoreAdd = 0x28,
-            AtomicStoreClr = 0x29,
-            AtomicStoreEor = 0x2A,
-            AtomicStoreSet = 0x2B,
-            AtomicStoreSmax = 0x2C,
-            AtomicStoreSmin = 0x2D,
-            AtomicStoreUmax = 0x2E,
-            AtomicStoreUmin = 0x2F,
-            AtomicLoadAdd = 0x30,
-            AtomicLoadClr = 0x31,
-            AtomicLoadEor = 0x32,
-            AtomicLoadSet = 0x33,
-            AtomicLoadSmax = 0x34,
-            AtomicLoadSmin = 0x35,
-            AtomicLoadUmax = 0x36,
-            AtomicLoadUmin = 0x37,
-            AtomicSwap = 0x38,
-            AtomicCompare = 0x39,
-            PrefetchTgt = 0x3A,
-            // RESERVED        = 0x3B to 0x40
-            // all CHI-E from here on
-            MakeReadUnique = 0x41,
-            WriteEvictOrEvict = 0x42,
-            WriteUniqueZero = 0x43,
-            WriteNoSnpZero = 0x44,
-            // RESERVED        = 0x45 to 0x46
-            StashOnceSepShared = 0x47,
-            StashOnceSepUnique = 0x48,
-            // RESERVED        = 0x49 to 0x4b
-            ReadPreferUnique = 0x4c,
-            // RESERVED        = 0x4d to 0x4F
-            WriteNoSnpFullCleanSh = 0x50,
-            WriteNoSnpFullCleanInv = 0x51,
-            WriteNoSnpFullCleanShPerSep = 0x52,
-            // RESERVED        = 0x52
-            WriteUniqueFullCleanSh = 0x54,
-            // RESERVED        = 0x55
-            WriteUniqueFullCleanShPerSep = 0x56,
-            // RESERVED        = 0x57
-            WriteBackFullCleanSh = 0x58,
-            WriteBackFullCleanInv = 0x59,
-            WriteBackFullCleanShPerSep = 0x5A,
-            // RESERVED        = 0x5B
-            WriteCleanFullCleanSh = 0x5c,
-            // RESERVED        = 0x5d
-            WriteCleanFullCleanShPerSep = 0x5e,
-            // RESERVED        = 0x3f
-            WriteNoSnpPtlCleanSh = 0x60,
-            WriteNoSnpPtlCleanInv = 0x61,
-            WriteNoSnpPtlCleanShPerSep = 0x62,
-            // RESERVED        = 0x63
-            WriteUniquePtlCleanSh = 0x64,
-            // RESERVED        = 0x3B to 0x40
-            WriteUniquePtlCleanShPerSep = 0x66,
-            // RESERVED        = 0x67 to 0x7f
-            ILLEGAL = 0xFF
+    ReadShared = 0x01,
+    ReadClean = 0x02,
+    ReadOnce = 0x03,
+    ReadNoSnp = 0x04,
+    PCrdReturn = 0x05,
+    Reserved = 0x06,
+    ReadUnique = 0x07,
+    CleanShared = 0x08,
+    CleanInvalid = 0x09,
+    MakeInvalid = 0x0A,
+    CleanUnique = 0x0B,
+    MakeUnique = 0x0C,
+    Evict = 0x0D,
+    EOBarrier = 0x0E,
+    ECBarrier = 0x0F,
+    // RESERVED    0x10
+    ReadNoSnpSep = 0x11, // CHI-E
+    // RESERVED    0x12
+    CleanSharedPersistSep = 0x13, // CHI-E
+    DVMOp = 0x14,
+    WriteEvictFull = 0x15,
+    WriteCleanPtl = 0x16, // As per CHI issue-A
+    WriteCleanFull = 0x17,
+    WriteUniquePtl = 0x18,
+    WriteUniqueFull = 0x19,
+    WriteBackPtl = 0x1A,
+    WriteBackFull = 0x1B,
+    WriteNoSnpPtl = 0x1C,
+    WriteNoSnpFull = 0x1D,
+    // RESERVED    0x1E-0x1F
+    WriteUniqueFullStash = 0x20,
+    WriteUniquePtlStash = 0x21,
+    StashOnceShared = 0x22,
+    StashOnceUnique = 0x23,
+    ReadOnceCleanInvalid = 0x24,
+    ReadOnceMakeInvalid = 0x25,
+    ReadNotSharedDirty = 0x26,
+    CleanSharedPersist = 0x27,
+    AtomicStoreAdd = 0x28,
+    AtomicStoreClr = 0x29,
+    AtomicStoreEor = 0x2A,
+    AtomicStoreSet = 0x2B,
+    AtomicStoreSmax = 0x2C,
+    AtomicStoreSmin = 0x2D,
+    AtomicStoreUmax = 0x2E,
+    AtomicStoreUmin = 0x2F,
+    AtomicLoadAdd = 0x30,
+    AtomicLoadClr = 0x31,
+    AtomicLoadEor = 0x32,
+    AtomicLoadSet = 0x33,
+    AtomicLoadSmax = 0x34,
+    AtomicLoadSmin = 0x35,
+    AtomicLoadUmax = 0x36,
+    AtomicLoadUmin = 0x37,
+    AtomicSwap = 0x38,
+    AtomicCompare = 0x39,
+    PrefetchTgt = 0x3A,
+    // RESERVED        = 0x3B to 0x40
+    // all CHI-E from here on
+    MakeReadUnique = 0x41,
+    WriteEvictOrEvict = 0x42,
+    WriteUniqueZero = 0x43,
+    WriteNoSnpZero = 0x44,
+    // RESERVED        = 0x45 to 0x46
+    StashOnceSepShared = 0x47,
+    StashOnceSepUnique = 0x48,
+    // RESERVED        = 0x49 to 0x4b
+    ReadPreferUnique = 0x4c,
+    // RESERVED        = 0x4d to 0x4F
+    WriteNoSnpFullCleanSh = 0x50,
+    WriteNoSnpFullCleanInv = 0x51,
+    WriteNoSnpFullCleanShPerSep = 0x52,
+    // RESERVED        = 0x52
+    WriteUniqueFullCleanSh = 0x54,
+    // RESERVED        = 0x55
+    WriteUniqueFullCleanShPerSep = 0x56,
+    // RESERVED        = 0x57
+    WriteBackFullCleanSh = 0x58,
+    WriteBackFullCleanInv = 0x59,
+    WriteBackFullCleanShPerSep = 0x5A,
+    // RESERVED        = 0x5B
+    WriteCleanFullCleanSh = 0x5c,
+    // RESERVED        = 0x5d
+    WriteCleanFullCleanShPerSep = 0x5e,
+    // RESERVED        = 0x3f
+    WriteNoSnpPtlCleanSh = 0x60,
+    WriteNoSnpPtlCleanInv = 0x61,
+    WriteNoSnpPtlCleanShPerSep = 0x62,
+    // RESERVED        = 0x63
+    WriteUniquePtlCleanSh = 0x64,
+    // RESERVED        = 0x3B to 0x40
+    WriteUniquePtlCleanShPerSep = 0x66,
+    // RESERVED        = 0x67 to 0x7f
+    ILLEGAL = 0xFF
 };
 
 // the Snp_Req channel request type enumeration class acc. Table 12-17 SNP channel opcodes and Page No:321
 enum class snp_optype_e : uint8_t {
     SnpLCrdReturn = 0x00,
-            SnpShared = 0x01,
-            SnpClean = 0x02,
-            SnpOnce = 0x03,
-            SnpNotSharedDirty = 0x04,
-            SnpUniqueStash = 0x05,
-            SnpMakeInvalidStash = 0x06,
-            SnpUnique = 0x07,
-            SnpCleanShared = 0x08,
-            SnpCleanInvalid = 0x09,
-            SnpMakeInvalid = 0x0A,
-            SnpStashUnique = 0x0B,
-            SnpStashShared = 0x0c,
-            SnpDVMOp = 0x0D,
-            SnpQuery = 0x10,
-            SnpSharedFwd = 0x11,
-            SnpCleanFwd = 0x12,
-            SnpOnceFwd = 0x13,
-            SnpNotSharedDirtyFwd = 0x14,
-            SnpPreferUnique = 0x15,
-            SnpPreferUniqueFwd = 0x16,
-            SnpUniqueFwd = 0x17,
-            // Reserved           = 0x0E-0x0F
-            // Reserved           = 0x18-0x1F
-            ILLEGAL = 0x20
+    SnpShared = 0x01,
+    SnpClean = 0x02,
+    SnpOnce = 0x03,
+    SnpNotSharedDirty = 0x04,
+    SnpUniqueStash = 0x05,
+    SnpMakeInvalidStash = 0x06,
+    SnpUnique = 0x07,
+    SnpCleanShared = 0x08,
+    SnpCleanInvalid = 0x09,
+    SnpMakeInvalid = 0x0A,
+    SnpStashUnique = 0x0B,
+    SnpStashShared = 0x0c,
+    SnpDVMOp = 0x0D,
+    SnpQuery = 0x10,
+    SnpSharedFwd = 0x11,
+    SnpCleanFwd = 0x12,
+    SnpOnceFwd = 0x13,
+    SnpNotSharedDirtyFwd = 0x14,
+    SnpPreferUnique = 0x15,
+    SnpPreferUniqueFwd = 0x16,
+    SnpUniqueFwd = 0x17,
+    // Reserved           = 0x0E-0x0F
+    // Reserved           = 0x18-0x1F
+    ILLEGAL = 0x20
 };
 
 // the Dat type enumeration class acc. Table 12-18 DAT channel opcodes and Page No:322
 enum class dat_optype_e : uint8_t {
     DataLCrdReturn = 0x0,
-            SnpRespData = 0x1,
-            CopyBackWrData = 0x2,
-            NonCopyBackWrData = 0x3,
-            CompData = 0x4,
-            SnpRespDataPtl = 0x5,
-            SnpRespDataFwded = 0x6,
-            WriteDataCancel = 0x7,
-            DataSepResp = 0xB,
-            NCBWrDataCompAck = 0xC,
-            // Reserved        = 0x8-0xA
-            // Reserved        = 0xD-0xF
-            // Table 4-9 Permitted Non-forward type data opcode
-            SnpRespData_I = 0x1,
-            SnpRespData_UC = 0x1,
-            SnpRespData_UD = 0x1,
-            SnpRespData_SC = 0x1,
-            SnpRespData_SD = 0x1,
-            SnpRespData_I_PD = 0x1,
-            SnpRespData_UC_PD = 0x1,
-            SnpRespData_SC_PD = 0x1,
-            SnpRespDataPtl_I_PD = 0x5,
-            SnpRespDataPtl_UD = 0x5,
-            // Table 4-10 Permitted Forward data opcode
-            SnpRespData_I_Fwded_SC = 0x6,
-            SnpRespData_I_Fwded_SD_PD = 0x6,
-            SnpRespData_SC_Fwded_SC = 0x6,
-            SnpRespData_SC_Fwded_SD_PD = 0x6,
-            SnpRespData_SD_Fwded_SC = 0x6,
-            SnpRespData_I_PD_Fwded_I = 0x6,
-            SnpRespData_I_PD_Fwded_SC = 0x6,
-            SnpRespData_SC_PD_Fwded_I = 0x6,
-            SnpRespData_SC_PD_Fwded_SC = 0x6
-
+    SnpRespData = 0x1,
+    CopyBackWrData = 0x2,
+    NonCopyBackWrData = 0x3,
+    CompData = 0x4,
+    SnpRespDataPtl = 0x5,
+    SnpRespDataFwded = 0x6,
+    WriteDataCancel = 0x7,
+    DataSepResp = 0xB,
+    NCBWrDataCompAck = 0xC,
+    // Reserved        = 0x8-0xA
+    // Reserved        = 0xD-0xF
+    // Table 4-9 Permitted Non-forward type data opcode
+    SnpRespData_I = 0x1,
+    SnpRespData_UC = 0x1,
+    SnpRespData_UD = 0x1,
+    SnpRespData_SC = 0x1,
+    SnpRespData_SD = 0x1,
+    SnpRespData_I_PD = 0x1,
+    SnpRespData_UC_PD = 0x1,
+    SnpRespData_SC_PD = 0x1,
+    SnpRespDataPtl_I_PD = 0x5,
+    SnpRespDataPtl_UD = 0x5,
+    // Table 4-10 Permitted Forward data opcode
+    SnpRespData_I_Fwded_SC = 0x6,
+    SnpRespData_I_Fwded_SD_PD = 0x6,
+    SnpRespData_SC_Fwded_SC = 0x6,
+    SnpRespData_SC_Fwded_SD_PD = 0x6,
+    SnpRespData_SD_Fwded_SC = 0x6,
+    SnpRespData_I_PD_Fwded_I = 0x6,
+    SnpRespData_I_PD_Fwded_SC = 0x6,
+    SnpRespData_SC_PD_Fwded_I = 0x6,
+    SnpRespData_SC_PD_Fwded_SC = 0x6
 };
 
 // the dat response 'resp' field type enumeration class acc. sec 4.5 Response types
 enum class dat_resptype_e : uint8_t {
     // Read and Atomic Completion
     CompData_I = 0b000, // Copy of cacheline cannot be kept
-            DataSepResp_I = 0b000,
-            RespSepData_I = 0b000, // Not applicable
-            CompData_UC = 0b010,   // Final state of cacheline can be UC or UCE or SC or I
-            DataSepResp_UC = 0b010,
-            RespSepData_UC = 0b010,
-            CompData_SC = 0b001,
-            DataSepResp_SC = 0b001,
-            RespSepData_SC = 0b001,
-            CompData_UD_PD = 0b110,
-            CompData_SD_PD = 0b111,
-            // Table 4-9 Permitted Non-forward type snoop responses with data(Dat opcode =0x1)
-            SnpRespData_I = 0b000,
-            SnpRespData_UC = 0b010,
-            SnpRespData_UD = 0b010,
-            SnpRespData_SC = 0b001,
-            SnpRespData_SD = 0b011,
-            SnpRespData_I_PD = 0b100,
-            SnpRespData_UC_PD = 0b110,
-            SnpRespData_SC_PD = 0b101,
-            SnpRespDataPtl_I_PD = 0b100,
-            SnpRespDataPtl_UD = 0b010,
+    CompData_SC = 0b001,
+    CompData_UC = 0b010, // Final state of cacheline can be UC or UCE or SC or I
+    CompData_UD_PD = 0b110,
+    CompData_SD_PD = 0b111,
+    DataSepResp_I = 0b000,
+    DataSepResp_SC = 0b001,
+    DataSepResp_UC = 0b010,
+    RespSepData_I = 0b000, // Not applicable
+    RespSepData_SC = 0b001,
+    RespSepData_UC = 0b010,
+    // Table 4-9 Permitted Non-forward type snoop responses with data(Dat opcode =0x1)
+    SnpRespData_I = 0b000,
+    SnpRespData_UC = 0b010,
+    SnpRespData_UD = 0b010,
+    SnpRespData_SC = 0b001,
+    SnpRespData_SD = 0b011,
+    SnpRespData_I_PD = 0b100,
+    SnpRespData_UC_PD = 0b110,
+    SnpRespData_SC_PD = 0b101,
+    SnpRespDataPtl_I_PD = 0b100,
+    SnpRespDataPtl_UD = 0b010,
 
-            // Dataless transactions
-            Comp_I = 0b000,  // final state must be I
-            Comp_UC = 0b010, // final state can be UC, UCE,SC or I
-            Comp_SC = 0b001, // final state SC or I
-            // Write and Atomic completion
-            CopyBackWrData_I = 0b000,  // if cache state when data sent is I
-            CopyBackWrData_UC = 0b010, // Cache line = UC
-            CopyBackWrData_SC = 0b001,
-            CopyBackWrData_UD_PD = 0b110, // cacheline state UD or UDP
-            CopyBackWrData_SD_PD = 0b111,
-            NonCopyBackWrData = 0b000,
-            NCBWrDataCompAck = 0b000
+    // Dataless transactions
+    Comp_I = 0b000,  // final state must be I
+    Comp_UC = 0b010, // final state can be UC, UCE,SC or I
+    Comp_SC = 0b001, // final state SC or I
+    // Write and Atomic completion
+    CopyBackWrData_I = 0b000,  // if cache state when data sent is I
+    CopyBackWrData_UC = 0b010, // Cache line = UC
+    CopyBackWrData_SC = 0b001,
+    CopyBackWrData_UD_PD = 0b110, // cacheline state UD or UDP
+    CopyBackWrData_SD_PD = 0b111,
+    NonCopyBackWrData = 0b000,
+    NCBWrDataCompAck = 0b000
 };
 
 // response type enumeration class according to Table 12-16 RSP channel opcodes and Page No :320
 enum class rsp_optype_e : uint8_t {
     RespLCrdReturn = 0x0,
-            SnpResp = 0x1,
-            CompAck = 0x2,
-            RetryAck = 0x3,
-            Comp = 0x4,
-            CompDBIDResp = 0x5,
-            DBIDResp = 0x6,
-            PCrdGrant = 0x7,
-            ReadReceipt = 0x8,
-            SnpRespFwded = 0x9,
-            TagMatch = 0xA,
-            RespSepData = 0xB,
-            Persist =0xC,
-            CompPersist = 0xD,
-            DBIDRespOrd = 0xE,
-            // Reserved = 0xF
-            StashDone = 0x10,
-            CompStashDone = 0x11,
-            // Reserved = 0x12-0x13
-            CompCMO = 0x14,
-            // Reserved = 0x15-0x1f
-            INVALID = 0x20
+    SnpResp = 0x1,
+    CompAck = 0x2,
+    RetryAck = 0x3,
+    Comp = 0x4,
+    CompDBIDResp = 0x5,
+    DBIDResp = 0x6,
+    PCrdGrant = 0x7,
+    ReadReceipt = 0x8,
+    SnpRespFwded = 0x9,
+    TagMatch = 0xA,
+    RespSepData = 0xB,
+    Persist = 0xC,
+    CompPersist = 0xD,
+    DBIDRespOrd = 0xE,
+    // Reserved = 0xF
+    StashDone = 0x10,
+    CompStashDone = 0x11,
+    // Reserved = 0x12-0x13
+    CompCMO = 0x14,
+    // Reserved = 0x15-0x1f
+    INVALID = 0x20
 };
 
 enum class rsp_resptype_e : uint8_t {
     // Table 4-7 Permitted Non-forward type snoop responses without data
     SnpResp_I = 0b000,
-            SnpResp_SC = 0b001,
-            SnpResp_UC = 0b010,
-            SnpResp_UD = 0b010,
-            SnpResp_SD = 0b011,
-            // Table 4-5 Permitted Dataless transaction completion
-            Comp_I = 0b000,  // final state must be I
-            Comp_UC = 0b010, // final state can be UC, UCE,SC or I
-            Comp_SC = 0b001, // final state SC or I
+    SnpResp_SC = 0b001,
+    SnpResp_UC = 0b010,
+    SnpResp_UD = 0b010,
+    SnpResp_SD = 0b011,
+    // Table 4-7 Permitted Dataless transaction completion
+    Comp_I = 0b000,     // final state must be I
+    Comp_UC = 0b010,    // final state can be UC, UCE,SC or I
+    Comp_SC = 0b001,    // final state SC or I
+    Comp_UD_PD = 0b110, // final state SC or I
+    // Table 4-11 Permitted Non-forward type snoop responses with data
+    SnpRespData_I = 0b000, // dat opcode =0x1 Snoop response with data.
+    SnpRespData_UC = 0b010,
+    SnpRespData_UD = 0b010,   // dat opcode = 0x1 Snoop response with data. Cache line state is UC or UD.
+    SnpRespData_SC = 0b001,   // dat opcode = 0x1 Snoop response with data. Cache line state is SC.
+    SnpRespData_SD = 0b011,   // dat opcode = 0x1 Snoop response with data. Cache line state is SD.
+    SnpRespData_I_PD = 0b100, // dat opcode = 0x1 Snoop response with data. Cache line state is I. Responsibility for updating the memory is
+                              // passed to the Home.
+    SnpRespData_UC_PD = 0b110, // dat opcode = 0x1 Snoop response with data. Cache line state is UC. Responsibility for updating the memory
+                               // is passed to the Home.
+    SnpRespData_SC_PD = 0b101, // dat opcode = 0x1 Snoop response with data. Cache line state is SC. Responsibility for updating the memory
+                               // is passed to the Home.
+    SnpRespDataPtl_I_PD = 0b100, // dat opcode = 0x5 Snoop response with partial data. Cache line state is I. Responsibility for updating
+                                 // the memory is passed to the Home.
+    SnpRespDataPtl_UD = 0b010,   // dat opcode = 0x5 Snoop response with partial data.
 };
+
+enum class rsp_resperrtype_e : uint8_t { OK = 0b00, EXOK = 0b01, DERR = 0b10, NDERR = 0b11 };
 
 enum class credit_type_e : uint8_t {
     LINK,
@@ -314,6 +332,30 @@ enum class credit_type_e : uint8_t {
     RESP, // RN->HN: cresp,  HN->RN: sresp
     DATA, // RN->HN: rxdata, HN->RN: txdata
 };
+
+enum class dvm_e {
+    DVMOpSize = 0x3,
+    PacketNumShift = 3, // In the request's address
+
+    // DVM operations
+    TLBI = 0x0,
+    BranchPredictorInvalidate = 0x1,
+    PICI = 0x2,
+    VICI = 0x3,
+    Sync = 0x4,
+
+    //
+    // Address bits with information [40:4] (37 bits), 8.2.2 [1]
+    //
+    AddressBits = 37,
+
+    DVMOpMask = 0x7,
+    DVMOpShift = 11,
+
+    DVMVAValidMask = 0x1,
+    DVMVAValidShift = 4,
+};
+
 /**
  * common : This structure contains common fields for all the 4 structures of 'request', 'snp_request',
  *            'data' packet as well as 'response'
@@ -396,10 +438,21 @@ struct request {
      * The number is required to identify the last flit in data transaction. */
     void set_max_flit(uint8_t data_id);
     uint8_t get_max_flit() const;
-    /* Memory attribute. Determines the memory attributes associated with the
-    transaction. */
+    /* Memory attribute. Determines the memory attributes associated with the transaction. */
     void set_mem_attr(uint8_t);
     uint8_t get_mem_attr() const;
+    /* Device memory type must be used for locations that exhibit side-effects. */
+    void set_device(bool is_device);
+    bool is_device() const;
+    /* EWA indicates whether the write completion response for a transaction */
+    void set_ewa(bool is_device);
+    bool is_ewa() const;
+    /* The Allocate attribute is a an allocation hint. It indicates the recommended allocation policy for a transaction */
+    void set_allocate(bool is_device);
+    bool is_allocate() const;
+    /* The Cacheable attribute indicates if a transaction must perform a cache lookup */
+    void set_cacheable(bool is_device);
+    bool is_cacheable() const;
     /* Protocol Credit Type. Indicates the type of Protocol Credit being used by a
        request that has the AllowRetry field deasserted */
     void set_pcrd_type(uint8_t);
@@ -457,15 +510,15 @@ struct request {
     void set_likely_shared(bool = true);
     bool is_likely_shared() const;
     /* Indicates the operation to be performed on the tags present in
-	the corresponding DAT channel */
+    the corresponding DAT channel */
     void set_tag_op(uint8_t);
     uint8_t get_tag_op() const;
     /* Precise contents are IMPLEMENTATION DEFINED. Typically
-	expected to contain Exception Level, TTBR value, and CPU identifier */
+    expected to contain Exception Level, TTBR value, and CPU identifier */
     void set_tag_group_id(uint32_t);
     uint32_t get_tag_group_id() const;
     /* Memory System Performance Resource Partitioning and Monitoring.
-	Efficiently utilizes the memory resources among users and monitors their use */
+    Efficiently utilizes the memory resources among users and monitors their use */
     void set_mpam(uint16_t);
     uint16_t get_mpam() const;
     /* Reserved for customer use. Any value is valid in a Protocol flit. Propagation of this field through the
@@ -474,13 +527,12 @@ struct request {
     uint32_t get_rsvdc() const; // Reserved for customer use.
 
 private:
-    uint8_t tgt_id{0}, lp_id{0}, return_txn_id{0}, stash_lp_id{0}, size{0}, max_flit{0}, mem_attr{0}, pcrd_type{0},
-    order{0};
+    uint8_t tgt_id{0}, lp_id{0}, return_txn_id{0}, stash_lp_id{0}, size{0}, max_flit{0}, mem_attr{0}, pcrd_type{0}, order{0};
     bool endian{false}, trace_tag{false};
     uint16_t return_n_id{0}, stash_n_id{0};
     req_optype_e opcode{req_optype_e::ReqLCrdReturn};
-    bool stash_n_id_valid{false}, stash_lp_id_valid{false}, ns{false}, exp_comp_ack{false}, allow_retry{false},
-    snp_attr{false}, excl{false}, snoop_me{false}, likely_shared{false};
+    bool stash_n_id_valid{false}, stash_lp_id_valid{false}, ns{false}, exp_comp_ack{false}, allow_retry{false}, snp_attr{false},
+        excl{false}, snoop_me{false}, likely_shared{false};
     uint32_t rsvdc{0}, tag_group_id{0};
     uint16_t mpam{0};
     uint8_t tag_op{0};
@@ -547,14 +599,14 @@ private:
  */
 struct data {
     /* Data Buffer ID. The ID provided to be used as the TxnID in the response to this message*/
-    void set_db_id(uint8_t);
-    uint8_t get_db_id() const;
+    void set_db_id(uint16_t);
+    uint16_t get_db_id() const;
     /* Set the opcode of Data packet */
     void set_opcode(dat_optype_e opcode);
     dat_optype_e get_opcode() const;
     /*Response Error status. Indicates the error status associated with a data transfer*/
-    void set_resp_err(uint8_t);
-    uint8_t get_resp_err() const;
+    void set_resp_err(rsp_resperrtype_e);
+    rsp_resperrtype_e get_resp_err() const;
     /*Response status. Indicates the cache line state associated with a data transfer*/
     void set_resp(dat_resptype_e);
     dat_resptype_e get_resp() const;
@@ -599,7 +651,7 @@ struct data {
     void set_trace_tag(bool);
     bool is_trace_tag() const;
     /* Indicates the operation to be performed on the tags present in
-	the corresponding DAT channel */
+    the corresponding DAT channel */
     void set_tag_op(uint8_t);
     uint8_t get_tag_op() const;
     /* Provides up to 8 sets of 4-bit tags, each associated with a 16-byte, aligned address location. */
@@ -610,15 +662,16 @@ struct data {
     uint16_t get_tu() const;
 
 private:
-    uint8_t db_id{0}, resp_err{0};
-    dat_resptype_e resp{dat_resptype_e::CompData_I};
-    uint8_t fwd_state{0}, data_pull{0}, data_source{0}, cc_id{0}, data_id{0}, poison{0};
-    uint16_t tgt_id{0}, home_n_id{0};
-    dat_optype_e opcode{dat_optype_e::DataLCrdReturn};
-    uint32_t rsvdc{0};
     uint64_t data_check{0};
     uint64_t tag{0};
+    uint32_t rsvdc{0};
+    uint16_t db_id{0};
+    uint16_t tgt_id{0}, home_n_id{0};
     uint16_t tu{0};
+    rsp_resperrtype_e resp_err{rsp_resperrtype_e::OK};
+    dat_resptype_e resp{dat_resptype_e::CompData_I};
+    dat_optype_e opcode{dat_optype_e::DataLCrdReturn};
+    uint8_t fwd_state{0}, data_pull{0}, data_source{0}, cc_id{0}, data_id{0}, poison{0};
     uint8_t tag_op{0};
     bool trace_tag{false};
 };
@@ -630,8 +683,8 @@ private:
 struct response {
     /* Data Buffer ID. The ID provided to be used as the TxnID in the response to
     this message*/
-    void set_db_id(uint8_t);
-    uint8_t get_db_id() const;
+    void set_db_id(uint16_t);
+    uint16_t get_db_id() const;
     /*The PCrdType field indicates the credit type associated with the request*/
     void set_pcrd_type(uint8_t);
     uint8_t get_pcrd_type() const;
@@ -639,8 +692,8 @@ struct response {
     void set_opcode(rsp_optype_e opcode);
     rsp_optype_e get_opcode() const;
     /*Response Error status. Indicates the error status associated with request*/
-    void set_resp_err(uint8_t);
-    uint8_t get_resp_err() const;
+    void set_resp_err(rsp_resperrtype_e);
+    rsp_resperrtype_e get_resp_err() const;
     /*Response status. Indicates the response associated with a request*/
     void set_resp(rsp_resptype_e);
     rsp_resptype_e get_resp() const;
@@ -655,11 +708,11 @@ struct response {
     void set_tgt_id(uint16_t);
     uint16_t get_tgt_id() const;
     /* Indicates the operation to be performed on the tags present in
-	the corresponding DAT channel */
+    the corresponding DAT channel */
     void set_tag_op(uint8_t);
     uint8_t get_tag_op() const;
     /* Precise contents are IMPLEMENTATION DEFINED. Typically
-	expected to contain Exception Level, TTBR value, and CPU identifier */
+    expected to contain Exception Level, TTBR value, and CPU identifier */
     void set_tag_group_id(uint32_t);
     uint32_t get_tag_group_id() const;
     /*Trace Tag. Provides additional support for the debugging, tracing, and performance measurement of systems*/
@@ -667,13 +720,15 @@ struct response {
     bool is_trace_tag() const;
 
 private:
-    uint8_t db_id{0}, pcrd_type{0}, resp_err{0}, fwd_state{0};
-    bool data_pull{false};
-    rsp_optype_e opcode{rsp_optype_e::INVALID};
-    rsp_resptype_e resp{rsp_resptype_e::SnpResp_I};
     uint32_t tag_group_id{0};
     uint16_t tgt_id{0};
+    uint16_t db_id{0};
+    rsp_resperrtype_e resp_err{rsp_resperrtype_e::OK};
+    rsp_optype_e opcode{rsp_optype_e::INVALID};
+    rsp_resptype_e resp{rsp_resptype_e::SnpResp_I};
+    uint8_t pcrd_type{0}, fwd_state{0};
     uint8_t tag_op{0};
+    bool data_pull{false};
     bool trace_tag{false};
 };
 
@@ -705,9 +760,7 @@ struct chi_ctrl_extension : public tlm::tlm_extension<chi_ctrl_extension> {
      * @brief deep copy all values from ext
      * @param ext
      */
-    void copy_from(tlm::tlm_extension_base const& ext) {
-        *this = static_cast<const chi_ctrl_extension&>(ext);
-    } // use assignment operator
+    void copy_from(tlm::tlm_extension_base const& ext) { *this = static_cast<const chi_ctrl_extension&>(ext); } // use assignment operator
 
     void set_txn_id(unsigned int id) { cmn.set_txn_id(id); }
 
@@ -783,9 +836,7 @@ struct chi_data_extension : public tlm::tlm_extension<chi_data_extension> {
      * @brief deep copy all values from ext
      * @param ext
      */
-    void copy_from(tlm::tlm_extension_base const& ext) {
-        *this = static_cast<const chi_data_extension&>(ext);
-    } // use assignment operator
+    void copy_from(tlm::tlm_extension_base const& ext) { *this = static_cast<const chi_data_extension&>(ext); } // use assignment operator
 
     void set_txn_id(unsigned int id) { cmn.set_txn_id(id); }
 
@@ -825,9 +876,7 @@ struct chi_credit_extension : public tlm::tlm_extension<chi_credit_extension>, p
      * @brief deep copy all values from ext
      * @param ext
      */
-    void copy_from(tlm::tlm_extension_base const& ext) {
-        *this = static_cast<const chi_credit_extension&>(ext);
-    } // use assignment operator
+    void copy_from(tlm::tlm_extension_base const& ext) { *this = static_cast<const chi_credit_extension&>(ext); } // use assignment operator
 };
 
 //! aliases for payload and phase types
@@ -859,8 +908,7 @@ template <typename TYPES = chi::chi_protocol_types> using chi_fw_transport_if = 
 /**
  * interface definition for the blocking backward interface. This is need to allow snoop accesses in blocking mode
  */
-template <typename TRANS = tlm::tlm_generic_payload>
-class bw_blocking_transport_if : public virtual sc_core::sc_interface {
+template <typename TRANS = tlm::tlm_generic_payload> class bw_blocking_transport_if : public virtual sc_core::sc_interface {
 public:
     /**
      * @brief snoop access to a snooped master
@@ -875,19 +923,24 @@ public:
  */
 template <typename TYPES = chi::chi_protocol_types>
 class chi_bw_transport_if : public tlm::tlm_bw_transport_if<TYPES>,
-public virtual bw_blocking_transport_if<typename TYPES::tlm_payload_type> {};
+                            public virtual bw_blocking_transport_if<typename TYPES::tlm_payload_type> {};
+
+#if SC_VERSION_MAJOR < 3
+using type_index = sc_core::sc_type_index;
+#else
+using type_index = std::type_index;
+#endif
 
 /**
  * CHI initiator socket class using payloads carrying CHI transaction request and response (RN to HN request and HN to
  * RN response)
  */
 template <unsigned int BUSWIDTH = 32, typename TYPES = chi_protocol_types, int N = 1,
-        sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
+          sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
 struct chi_initiator_socket
-        : public tlm::tlm_base_initiator_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL> {
+: public tlm::tlm_base_initiator_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL> {
     //! base type alias
-    using base_type =
-            tlm::tlm_base_initiator_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL>;
+    using base_type = tlm::tlm_base_initiator_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL>;
     /**
      * @brief default constructor using a generated instance name
      */
@@ -904,12 +957,12 @@ struct chi_initiator_socket
      * @return the kind string
      */
     const char* kind() const override { return "chi_trx_initiator_socket"; }
-#if SYSTEMC_VERSION >= 20181013 // not the right version but we assume TLM is always bundled with SystemC
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC) // not the right version but we assume TLM is always bundled with SystemC
     /**
      * @brief get the type of protocol
      * @return the kind typeid
      */
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 
@@ -918,12 +971,10 @@ struct chi_initiator_socket
  * response)
  */
 template <unsigned int BUSWIDTH = 32, typename TYPES = chi_protocol_types, int N = 1,
-        sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
-struct chi_target_socket
-        : public tlm::tlm_base_target_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL> {
+          sc_core::sc_port_policy POL = sc_core::SC_ONE_OR_MORE_BOUND>
+struct chi_target_socket : public tlm::tlm_base_target_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL> {
     //! base type alias
-    using base_type =
-            tlm::tlm_base_target_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL>;
+    using base_type = tlm::tlm_base_target_socket<BUSWIDTH, chi_fw_transport_if<TYPES>, chi_bw_transport_if<TYPES>, N, POL>;
     /**
      * @brief default constructor using a generated instance name
      */
@@ -940,27 +991,29 @@ struct chi_target_socket
      * @return the kind string
      */
     const char* kind() const override { return "chi_trx_target_socket"; }
-#if SYSTEMC_VERSION >= 20181013
+#if SYSTEMC_VERSION >= 20181013 || defined(NCSC)
     /**
      * @brief get the type of protocol
      * @return the kind typeid
      */
-    sc_core::sc_type_index get_protocol_types() const override { return typeid(TYPES); }
+    type_index get_protocol_types() const override { return typeid(TYPES); }
 #endif
 };
 /*****************************************************************************
  * free function easing handling of transactions and extensions
  *****************************************************************************/
 
-template <typename EXT> inline bool is_valid(EXT& ext) { return is_valid(&ext); }
+template <typename EXT> inline bool is_valid(EXT& ext) { return is_valid_msg(&ext) == nullptr; }
 
-template <typename EXT> bool is_valid(EXT* ext);
+template <typename EXT> bool is_valid(EXT* ext) { return is_valid_msg(ext) == nullptr; }
+
+template <typename EXT> char const* is_valid_msg(EXT* ext);
 
 inline bool is_dataless(const chi::chi_ctrl_extension* req_e) {
     switch(req_e->req.get_opcode()) {
     case chi::req_optype_e::CleanUnique:
     case chi::req_optype_e::MakeUnique:
-    case chi::req_optype_e::Evict :
+    case chi::req_optype_e::Evict:
     case chi::req_optype_e::StashOnceUnique:
     case chi::req_optype_e::StashOnceSepUnique:
     case chi::req_optype_e::StashOnceShared:
@@ -973,9 +1026,113 @@ inline bool is_dataless(const chi::chi_ctrl_extension* req_e) {
     case chi::req_optype_e::WriteNoSnpZero:
     case chi::req_optype_e::WriteUniqueZero:
         return true;
+    case chi::req_optype_e::MakeReadUnique:
+        switch(req_e->resp.get_opcode()) {
+        case chi::rsp_optype_e::Comp: // Response to dataless MakeReadUnique request (4.5.1 Completion response of IHI0050E
+        case chi::rsp_optype_e::CompPersist:
+        case chi::rsp_optype_e::CompCMO:
+        case chi::rsp_optype_e::CompStashDone:
+            return true;
+        default:
+            break;
+        }
+        break;
+    default:
+        break;
     }
     return false;
+}
 
+inline bool is_dataless(const chi::chi_snp_extension* req_e) {
+    switch(req_e->req.get_opcode()) {
+    case snp_optype_e::SnpLCrdReturn:
+    case snp_optype_e::SnpShared:
+    case snp_optype_e::SnpClean:
+    case snp_optype_e::SnpOnce:
+    case snp_optype_e::SnpNotSharedDirty:
+    case snp_optype_e::SnpUnique:
+    case snp_optype_e::SnpCleanShared:
+    case snp_optype_e::SnpCleanInvalid:
+    case snp_optype_e::SnpMakeInvalid:
+    case snp_optype_e::SnpDVMOp:
+    case snp_optype_e::SnpQuery:
+    case snp_optype_e::SnpPreferUnique:
+    case snp_optype_e::SnpPreferUniqueFwd:
+    case snp_optype_e::SnpUniqueFwd:
+        return false;
+    case snp_optype_e::SnpSharedFwd:
+    case snp_optype_e::SnpCleanFwd:
+    case snp_optype_e::SnpOnceFwd:
+    case snp_optype_e::SnpNotSharedDirtyFwd:
+    case snp_optype_e::SnpUniqueStash:
+    case snp_optype_e::SnpMakeInvalidStash:
+    case snp_optype_e::SnpStashUnique:
+    case snp_optype_e::SnpStashShared:
+        return true;
+    default:
+        return false;
+    }
+}
+
+inline bool is_atomic(const chi::chi_ctrl_extension* req_e) {
+    return req_e->req.get_opcode() >= chi::req_optype_e::AtomicStoreAdd && req_e->req.get_opcode() <= chi::req_optype_e::AtomicCompare;
+}
+
+inline bool is_request_order(const chi::chi_ctrl_extension* req_e) {
+    if(req_e->req.get_order() == 2) {
+        switch(req_e->req.get_opcode()) {
+        case chi::req_optype_e::ReadNoSnp:
+        case chi::req_optype_e::ReadNoSnpSep:
+        case chi::req_optype_e::ReadOnce:
+        case chi::req_optype_e::ReadOnceCleanInvalid:
+        case chi::req_optype_e::ReadOnceMakeInvalid:
+        case chi::req_optype_e::WriteNoSnpFull:
+        case chi::req_optype_e::WriteNoSnpFullCleanInv:
+        case chi::req_optype_e::WriteNoSnpFullCleanSh:
+        case chi::req_optype_e::WriteNoSnpFullCleanShPerSep:
+        case chi::req_optype_e::WriteNoSnpPtl:
+        case chi::req_optype_e::WriteNoSnpPtlCleanInv:
+        case chi::req_optype_e::WriteNoSnpPtlCleanSh:
+        case chi::req_optype_e::WriteNoSnpPtlCleanShPerSep:
+        case chi::req_optype_e::WriteUniqueFull:
+        case chi::req_optype_e::WriteUniqueFullCleanSh:
+        case chi::req_optype_e::WriteUniqueFullCleanShPerSep:
+        case chi::req_optype_e::WriteUniqueFullStash:
+        case chi::req_optype_e::WriteUniquePtl:
+        case chi::req_optype_e::WriteUniquePtlCleanSh:
+        case chi::req_optype_e::WriteUniquePtlCleanShPerSep:
+        case chi::req_optype_e::WriteUniquePtlStash:
+        case chi::req_optype_e::WriteUniqueZero:
+            return true;
+        default:
+            break;
+        }
+        return is_atomic(req_e);
+    } else
+        return false;
+}
+inline bool is_snoopable(const chi::chi_ctrl_extension* req_e) {
+    switch(req_e->req.get_opcode()) {
+    case chi::req_optype_e::ReadNoSnp:
+    case chi::req_optype_e::ReadNoSnpSep:
+    case chi::req_optype_e::CleanShared:
+    case chi::req_optype_e::CleanSharedPersist:
+    case chi::req_optype_e::CleanInvalid:
+    case chi::req_optype_e::MakeInvalid:
+    case chi::req_optype_e::WriteNoSnpFull:
+    case chi::req_optype_e::WriteNoSnpFullCleanInv:
+    case chi::req_optype_e::WriteNoSnpFullCleanSh:
+    case chi::req_optype_e::WriteNoSnpFullCleanShPerSep:
+    case chi::req_optype_e::WriteNoSnpPtl:
+    case chi::req_optype_e::WriteNoSnpPtlCleanInv:
+    case chi::req_optype_e::WriteNoSnpPtlCleanSh:
+    case chi::req_optype_e::WriteNoSnpPtlCleanShPerSep:
+    case chi::req_optype_e::WriteNoSnpZero:
+    case chi::req_optype_e::AtomicCompare:
+        return false;
+    default:
+        return !chi::is_atomic(req_e);
+    }
 }
 
 /*****************************************************************************
@@ -987,6 +1144,7 @@ template <> struct enable_for_enum<dat_optype_e> { static const bool enable = tr
 template <> struct enable_for_enum<dat_resptype_e> { static const bool enable = true; };
 template <> struct enable_for_enum<rsp_optype_e> { static const bool enable = true; };
 template <> struct enable_for_enum<rsp_resptype_e> { static const bool enable = true; };
+template <> struct enable_for_enum<rsp_resperrtype_e> { static const bool enable = true; };
 
 template <> inline req_optype_e into<req_optype_e>(typename std::underlying_type<req_optype_e>::type t) {
     assert(t <= static_cast<std::underlying_type<req_optype_e>::type>(req_optype_e::ILLEGAL));
@@ -1010,7 +1168,7 @@ template <> inline dat_resptype_e into<dat_resptype_e>(typename std::underlying_
 
 template <> inline rsp_optype_e into<rsp_optype_e>(typename std::underlying_type<rsp_optype_e>::type t) {
     assert(t >= static_cast<typename std::underlying_type<rsp_optype_e>::type>(rsp_optype_e::RespLCrdReturn) &&
-            t < static_cast<std::underlying_type<rsp_optype_e>::type>(rsp_optype_e::INVALID));
+           t < static_cast<std::underlying_type<rsp_optype_e>::type>(rsp_optype_e::INVALID));
     return static_cast<rsp_optype_e>(t);
 }
 
@@ -1019,13 +1177,18 @@ template <> inline rsp_resptype_e into<rsp_resptype_e>(typename std::underlying_
     return static_cast<rsp_resptype_e>(t);
 }
 
+template <> inline rsp_resperrtype_e into<rsp_resperrtype_e>(typename std::underlying_type<rsp_resperrtype_e>::type t) {
+    assert(t <= static_cast<std::underlying_type<rsp_resperrtype_e>::type>(rsp_resperrtype_e::NDERR));
+    return static_cast<rsp_resperrtype_e>(t);
+}
+
 // [1]  Implementation of 'request' structure member functions
 
 //! set the transition id value of REQ,WDAT,RDAT and CRSP a particular channel
 //! @param the TxnID of the channel
 // A transaction request includes a TxnID that is used to identify the transaction from a given Requester
 inline void common::set_txn_id(unsigned int txn_id) {
-    sc_assert(txn_id <= 1024); // TxnID field is defined to accommodate up to 1024 outstanding transactions.
+    sc_assert(txn_id <= 4096); // TxnID field is defined to accommodate up to 1024 outstanding transactions.
     this->txn_id = txn_id;
 }
 
@@ -1090,6 +1253,35 @@ inline void request::set_mem_attr(uint8_t mem_attr) {
     this->mem_attr = mem_attr;
 }
 inline uint8_t request::get_mem_attr() const { return mem_attr; }
+
+inline void request::set_device(bool is_device) {
+    if(is_device)
+        this->mem_attr |= 2;
+    else
+        this->mem_attr &= ~2U;
+}
+inline bool request::is_device() const { return this->mem_attr & 2; }
+inline void request::set_ewa(bool is_device) {
+    if(is_device)
+        this->mem_attr |= 1;
+    else
+        this->mem_attr &= ~1U;
+}
+inline bool request::is_ewa() const { return this->mem_attr & 1; }
+inline void request::set_allocate(bool is_device) {
+    if(is_device)
+        this->mem_attr |= 8;
+    else
+        this->mem_attr &= ~8U;
+}
+inline bool request::is_allocate() const { return this->mem_attr & 8; }
+inline void request::set_cacheable(bool is_device) {
+    if(is_device)
+        this->mem_attr |= 4;
+    else
+        this->mem_attr &= ~4U;
+}
+inline bool request::is_cacheable() const { return this->mem_attr & 4; }
 
 /* Protocol Credit Type. Indicates the type of Protocol Credit being used by a
    request that has the AllowRetry field deasserted */
@@ -1168,12 +1360,12 @@ inline bool request::is_likely_shared() const { return likely_shared; }
 inline void request::set_rsvdc(uint32_t rsvdc) { this->rsvdc = rsvdc; }
 inline uint32_t request::get_rsvdc() const { return rsvdc; }
 
-inline void request::set_tag_op(uint8_t tag_op){ this->tag_op = tag_op; }
+inline void request::set_tag_op(uint8_t tag_op) { this->tag_op = tag_op; }
 inline uint8_t request::get_tag_op() const { return tag_op; }
-inline void request::set_tag_group_id(uint32_t tag_group_id){ this->tag_group_id = tag_group_id; }
+inline void request::set_tag_group_id(uint32_t tag_group_id) { this->tag_group_id = tag_group_id; }
 inline uint32_t request::get_tag_group_id() const { return tag_group_id; }
-inline void request::set_mpam(uint16_t mpam){ this->mpam = mpam; }
-inline uint16_t request::get_mpam() const  { return mpam; }
+inline void request::set_mpam(uint16_t mpam) { this->mpam = mpam; }
+inline uint16_t request::get_mpam() const { return mpam; }
 
 //===== End of [2] request
 
@@ -1241,13 +1433,13 @@ inline bool snp_request::is_trace_tag() const { return trace_tag; }
 
 /* Data Buffer ID. The ID provided to be used as the TxnID in the response to
 this message*/
-inline void data::set_db_id(uint8_t db_id) { this->db_id = db_id; }
-inline uint8_t data::get_db_id() const { return db_id; }
+inline void data::set_db_id(uint16_t db_id) { this->db_id = db_id; }
+inline uint16_t data::get_db_id() const { return db_id; }
 
 /*Response Error status. Indicates the error status associated with a data
   transfer*/
-inline void data::set_resp_err(uint8_t resp_err) { this->resp_err = resp_err; }
-inline uint8_t data::get_resp_err() const { return resp_err; }
+inline void data::set_resp_err(rsp_resperrtype_e resp_err) { this->resp_err = resp_err; }
+inline rsp_resperrtype_e data::get_resp_err() const { return resp_err; }
 
 /*Response status. Indicates the cache line state associated with a data transfer*/
 inline void data::set_resp(dat_resptype_e resp) { this->resp = resp; }
@@ -1318,8 +1510,8 @@ inline uint16_t data::get_tu() const { return tu; }
 
 /* Data Buffer ID. The ID provided to be used as the TxnID in the response to
         this message*/
-inline void response::set_db_id(uint8_t db_id) { this->db_id = db_id; }
-inline uint8_t response::get_db_id() const { return db_id; }
+inline void response::set_db_id(uint16_t db_id) { this->db_id = db_id; }
+inline uint16_t response::get_db_id() const { return db_id; }
 
 /*The PCrdType field indicates the credit type associated with the request*/
 inline void response::set_pcrd_type(uint8_t pcrd_type) { this->pcrd_type = pcrd_type; }
@@ -1327,8 +1519,8 @@ inline uint8_t response::get_pcrd_type() const { return pcrd_type; }
 
 /*Response Error status. Indicates the error status associated with a data
 transfer*/
-inline void response::set_resp_err(uint8_t resp_err) { this->resp_err = resp_err; }
-inline uint8_t response::get_resp_err() const { return resp_err; }
+inline void response::set_resp_err(rsp_resperrtype_e resp_err) { this->resp_err = resp_err; }
+inline rsp_resperrtype_e response::get_resp_err() const { return resp_err; }
 
 /*Response status. Indicates the cache line state associated with a data transfer*/
 inline void response::set_resp(rsp_resptype_e resp) { this->resp = resp; }
@@ -1350,9 +1542,9 @@ inline void response::set_opcode(rsp_optype_e opcode) { this->opcode = opcode; }
 inline rsp_optype_e response::get_opcode() const { return opcode; }
 
 inline void response::set_tag_op(uint8_t tag_op) { this->tag_op = tag_op; }
-inline uint8_t response::get_tag_op() const{ return tag_op; }
+inline uint8_t response::get_tag_op() const { return tag_op; }
 inline void response::set_tag_group_id(uint32_t tag_group_id) { this->tag_group_id = tag_group_id; }
-inline uint32_t response::get_tag_group_id() const{ return tag_group_id; }
+inline uint32_t response::get_tag_group_id() const { return tag_group_id; }
 /*Trace Tag. Provides additional support for the debugging, tracing, and
 performance measurement of systems*/
 inline void response::set_trace_tag(bool trace_tag) { this->trace_tag = trace_tag; }

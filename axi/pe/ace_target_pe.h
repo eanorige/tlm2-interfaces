@@ -24,8 +24,8 @@
 #include <axi/fsm/base.h>
 #include <functional>
 #include <memory>
-#include <scc/mt19937_rng.h>
 #include <scc/ordered_semaphore.h>
+#include <scc/sc_attribute_randomized.h>
 #include <scc/sc_variable.h>
 #include <tlm/scc/pe/intor_if.h>
 #include <tlm_utils/peq_with_cb_and_phase.h>
@@ -35,57 +35,34 @@
 namespace axi {
 //! protocol engine implementations
 namespace pe {
-
-inline unsigned get_cci_randomized_value(cci::cci_param<int> const& p) {
-    if(p.get_value() < 0)
-        return scc::MT19937::uniform(0, -p.get_value());
-    return p.get_value();
-}
 /**
  * the target protocol engine base class
  */
-class axi_target_pe : public sc_core::sc_module, protected axi::fsm::base, public axi::axi_fw_transport_if<axi::axi_protocol_types> {
+class ace_target_pe : public sc_core::sc_module,
+                   protected axi::fsm::base,
+                   public axi::axi_bw_transport_if<axi::axi_protocol_types>,
+                   public axi::ace_fw_transport_if<axi::axi_protocol_types> {
     struct bw_intor_impl;
-
 public:
+
     using payload_type = axi::axi_protocol_types::tlm_payload_type;
     using phase_type = axi::axi_protocol_types::tlm_phase_type;
 
     sc_core::sc_in<bool> clk_i{"clk_i"};
 
+    // hongyu?? here first hardcoded
+    axi::axi_initiator_socket<64> isckt_axi{"isckt_axi"};
+
     sc_core::sc_port<tlm::scc::pe::intor_fw_nb, 1, sc_core::SC_ZERO_OR_MORE_BOUND> fw_o{"fw_o"};
 
     sc_core::sc_export<tlm::scc::pe::intor_bw_nb> bw_i{"bw_i"};
-
     /**
-     * @brief the number of supported outstanding transactions. If this limit is reached the target starts to do
-     * back-pressure
-     */
-    cci::cci_param<unsigned> max_outstanding_tx{"max_outstanding_tx", 0};
-    /**
-     * @brief enable data interleaving on read responses if rd_data_beat_delay is greater than 0
-     */
-    cci::cci_param<bool> rd_data_interleaving{"rd_data_interleaving", true};
-    /**
-     * @brief the latency between between BEGIN(_PARTIAL)_REQ and END(_PARTIAL)_REQ (AWVALID to AWREADY and WVALID to
-     * WREADY) -> AWR, WBR
-     */
-    cci::cci_param<int> wr_data_accept_delay{"wr_data_accept_delay", 0};
-    /**
-     * @brief the latency between between BEGIN_REQ and END_REQ (ARVALID to ARREADY) -> APR
-     */
-    cci::cci_param<int> rd_addr_accept_delay{"rd_addr_accept_delay", 0};
-    /**
-     * @brief the latency between between END(_PARTIAL)_RESP and BEGIN(_PARTIAL)_RESP (RREADY to RVALID) -> RBV
-     */
-    cci::cci_param<int> rd_data_beat_delay{"rd_data_beat_delay", 0};
-    /**
-     * @brief the latency between request and response phase. Will be overwritten by the return of the callback function
+     * @brief the latency between read request and response phase. Will be overwritten by the return of the callback function
      * (if registered) -> RIV
      */
     cci::cci_param<int> rd_resp_delay{"rd_resp_delay", 0};
     /**
-     * @brief the latency between request and response phase. Will be overwritten by the return of the callback function
+     * @brief the latency between write request and response phase. Will be overwritten by the return of the callback function
      * (if registered) -> BV
      */
     cci::cci_param<int> wr_resp_delay{"wr_resp_delay", 0};
@@ -128,30 +105,38 @@ public:
      */
     const sc_core::sc_event& tx_finish_event() { return finish_evt; }
 
-    ~axi_target_pe();
+     /* overwrite function, defined in axi_bw_transport_if */
+    tlm::tlm_sync_enum nb_transport_bw(payload_type& trans, phase_type& phase, sc_core::sc_time& t) override {
+        SCCTRACE(SCMOD)  << " in nb_transport_bw () " ;
+        return socket_bw->nb_transport_bw(trans, phase, t);
+    }
+
+    void invalidate_direct_mem_ptr(sc_dt::uint64 start_range, sc_dt::uint64 end_range) override {}
+
+
+    virtual ~ace_target_pe();
 
     /**
      * the constructor. Protected as it should only be called by derived classes
      * @param port
      * @param transfer_width
-     * @param flavor(axi, ace, aceLite)
      */
-    explicit axi_target_pe(const sc_core::sc_module_name& nm, size_t transfer_width, flavor_e flavor = flavor_e::AXI);
+    explicit ace_target_pe(const sc_core::sc_module_name& nm, size_t transfer_width);
 
-    void set_bw_interface(axi::axi_bw_transport_if<axi_protocol_types>* ifs) { socket_bw = ifs; }
+    void set_bw_interface(axi::axi_bw_transport_if<axi_protocol_types>* ifs) {socket_bw=ifs;}
 
-    inline unsigned getAllOutStandingTx() const { return outstanding_rd_tx + outstanding_wr_tx + outstanding_ign_tx; }
+    void snoop(payload_type& trans);
 
 protected:
-    axi_target_pe() = delete;
+    ace_target_pe() = delete;
 
-    axi_target_pe(axi_target_pe const&) = delete;
+    ace_target_pe(ace_target_pe const&) = delete;
 
-    axi_target_pe(axi_target_pe&&) = delete;
+    ace_target_pe(ace_target_pe&&) = delete;
 
-    axi_target_pe& operator=(axi_target_pe const&) = delete;
+    ace_target_pe& operator=(ace_target_pe const&) = delete;
 
-    axi_target_pe& operator=(axi_target_pe&&) = delete;
+    ace_target_pe& operator=(ace_target_pe&&) = delete;
 
     void end_of_elaboration() override;
 
@@ -171,51 +156,23 @@ protected:
 
     axi::axi_bw_transport_if<axi_protocol_types>* socket_bw{nullptr};
     std::function<unsigned(payload_type& trans)> operation_cb;
-    scc::fifo_w_cb<std::tuple<payload_type*, unsigned>> rd_req2resp_fifo{"rd_req2resp_fifo"};
-    scc::fifo_w_cb<std::tuple<payload_type*, unsigned>> wr_req2resp_fifo{"wr_req2resp_fifo"};
-    void process_req2resp_fifos();
     sc_core::sc_fifo<payload_type*> rd_resp_fifo{1}, wr_resp_fifo{1};
-    void start_rd_resp_thread();
-    void start_wr_resp_thread();
-    sc_core::sc_fifo<std::tuple<fsm::fsm_handle*, axi::fsm::protocol_time_point_e>> wr_resp_beat_fifo{128}, rd_resp_beat_fifo{128};
+
+    sc_core::sc_fifo<std::tuple<fsm::fsm_handle*, axi::fsm::protocol_time_point_e>> wr_resp_beat_fifo{128},
+    rd_resp_beat_fifo{128};
     scc::ordered_semaphore rd_resp{1}, wr_resp_ch{1}, rd_resp_ch{1};
-    void send_wr_resp_beat_thread();
-    void send_rd_resp_beat_thread();
 
     sc_core::sc_clock* clk_if{nullptr};
     std::unique_ptr<bw_intor_impl> bw_intor;
     std::array<unsigned, 3> outstanding_cnt{{0, 0, 0}}; // count for limiting
-    scc::sc_variable<unsigned> outstanding_rd_tx{"OutstandingRd", 0};
-    scc::sc_variable<unsigned> outstanding_wr_tx{"OutstandingWr", 0};
-    scc::sc_variable<unsigned> outstanding_ign_tx{"OutstandingIgn", 0};
-    inline scc::sc_variable<unsigned>& getOutStandingTx(tlm::tlm_command cmd) {
-        switch(cmd) {
-        case tlm::TLM_READ_COMMAND:
-            return outstanding_rd_tx;
-        case tlm::TLM_WRITE_COMMAND:
-            return outstanding_wr_tx;
-        default:
-            return outstanding_ign_tx;
-        }
-    }
-    inline scc::sc_variable<unsigned> const& getOutStandingTx(tlm::tlm_command cmd) const {
-        switch(cmd) {
-        case tlm::TLM_READ_COMMAND:
-            return outstanding_rd_tx;
-        case tlm::TLM_WRITE_COMMAND:
-            return outstanding_wr_tx;
-        default:
-            return outstanding_ign_tx;
-        }
-    }
-    std::array<tlm::tlm_generic_payload*, 3> stalled_tx{nullptr, nullptr, nullptr};
-    std::array<axi::fsm::protocol_time_point_e, 3> stalled_tp{{axi::fsm::CB_CNT, axi::fsm::CB_CNT, axi::fsm::CB_CNT}};
+
     void nb_fw(payload_type& trans, const phase_type& phase) {
         auto delay = sc_core::SC_ZERO_TIME;
         base::nb_fw(trans, phase, delay);
     }
-    tlm_utils::peq_with_cb_and_phase<axi_target_pe> fw_peq{this, &axi_target_pe::nb_fw};
+    tlm_utils::peq_with_cb_and_phase<ace_target_pe> fw_peq{this, &ace_target_pe::nb_fw};
     std::unordered_set<unsigned> active_rdresp_id;
+
 };
 
 } // namespace pe

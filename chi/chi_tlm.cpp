@@ -17,122 +17,121 @@
 #include "chi_tlm.h"
 #include <iostream>
 
-namespace chi
-{
-    std::array<char const *, 103> opc2str = {
-        "ReqLCrdReturn",
-        "ReadShared",
-        "ReadClean",
-        "ReadOnce",
-        "ReadNoSnp",
-        "PCrdReturn",
-        "Reserved",
-        "ReadUnique",
-        "CleanShared",
-        "CleanInvalid",
-        "MakeInvalid",
-        "CleanUnique",
-        "MakeUnique",
-        "Evict",
-        "EOBarrier",
-        "ECBarrier",
-        "RESERVED",
-        "ReadNoSnpSep",
-        "RESERVED",
-        "CleanSharedPersistSep",
-        "DVMOp",
-        "WriteEvictFull",
-        "WriteCleanPtl",
-        "WriteCleanFull",
-        "WriteUniquePtl",
-        "WriteUniqueFull",
-        "WriteBackPtl",
-        "WriteBackFull",
-        "WriteNoSnpPtl",
-        "WriteNoSnpFull",
-        "RESERVED",
-        "RESERVED",
-        "WriteUniqueFullStash",
-        "WriteUniquePtlStash",
-        "StashOnceShared",
-        "StashOnceUnique",
-        "ReadOnceCleanInvalid",
-        "ReadOnceMakeInvalid",
-        "ReadNotSharedDirty",
-        "CleanSharedPersist",
-        "AtomicStoreAdd",
-        "AtomicStoreClr",
-        "AtomicStoreEor",
-        "AtomicStoreSet",
-        "AtomicStoreSmax",
-        "AtomicStoreSmin",
-        "AtomicStoreUmax",
-        "AtomicStoreUmin",
-        "AtomicLoadAdd",
-        "AtomicLoadClr",
-        "AtomicLoadEor",
-        "AtomicLoadSet",
-        "AtomicLoadSmax",
-        "AtomicLoadSmin",
-        "AtomicLoadUmax",
-        "AtomicLoadUmin",
-        "AtomicSwap",
-        "AtomicCompare",
-        "PrefetchTgt",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "MakeReadUnique",
-        "WriteEvictOrEvict",
-        "WriteUniqueZero",
-        "WriteNoSnpZero",
-        "RESERVED",
-        "RESERVED",
-        "StashOnceSepShared",
-        "StashOnceSepUnique",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "ReadPreferUnique",
-        "RESERVED",
-        "RESERVED",
-        "RESERVED",
-        "WriteNoSnpFullCleanSh",
-        "WriteNoSnpFullCleanInv",
-        "WriteNoSnpFullCleanShPerSep",
-        "RESERVED",
-        "WriteUniqueFullCleanSh",
-        "RESERVED",
-        "WriteUniqueFullCleanShPerSep",
-        "RESERVED",
-        "WriteBackFullCleanSh",
-        "WriteBackFullCleanInv",
-        "WriteBackFullCleanShPerSep",
-        "RESERVED",
-        "WriteCleanFullCleanSh",
-        "RESERVED",
-        "WriteCleanFullCleanShPerSep",
-        "RESERVED",
-        "WriteNoSnpPtlCleanSh",
-        "WriteNoSnpPtlCleanInv",
-        "WriteNoSnpPtlCleanShPerSep",
-        "RESERVED",
-        "WriteUniquePtlCleanSh",
-        "RESERVED",
-        "WriteUniquePtlCleanShPerSep",
-    };
-    template <>
-    const char *to_char<req_optype_e>(req_optype_e v)
-    {
-        auto idx = static_cast<unsigned>(v);
-        if (idx < opc2str.size())
-            return opc2str[idx];
-        else
-            return "RESERVED";
-    }
+namespace chi {
+namespace {
+std::array<std::string, 3> cmd_str{"R", "W", "I"};
+}
+std::array<char const*, 103> opc2str = {
+	    "ReqLCrdReturn",
+	    "ReadShared",
+	    "ReadClean",
+	    "ReadOnce",
+	    "ReadNoSnp",
+	    "PCrdReturn",
+	    "Reserved",
+	    "ReadUnique",
+	    "CleanShared",
+	    "CleanInvalid",
+	    "MakeInvalid",
+	    "CleanUnique",
+	    "MakeUnique",
+	    "Evict",
+	    "EOBarrier",
+	    "ECBarrier",
+	    "RESERVED",
+	    "ReadNoSnpSep",
+		"RESERVED",
+		"CleanSharedPersistSep",
+	    "DVMOp",
+	    "WriteEvictFull",
+	    "WriteCleanPtl",
+	    "WriteCleanFull",
+	    "WriteUniquePtl",
+	    "WriteUniqueFull",
+	    "WriteBackPtl",
+	    "WriteBackFull",
+	    "WriteNoSnpPtl",
+	    "WriteNoSnpFull",
+		"RESERVED",
+		"RESERVED",
+	    "WriteUniqueFullStash",
+	    "WriteUniquePtlStash",
+	    "StashOnceShared",
+	    "StashOnceUnique",
+	    "ReadOnceCleanInvalid",
+	    "ReadOnceMakeInvalid",
+	    "ReadNotSharedDirty",
+	    "CleanSharedPersist",
+	    "AtomicStoreAdd",
+	    "AtomicStoreClr",
+	    "AtomicStoreEor",
+	    "AtomicStoreSet",
+	    "AtomicStoreSmax",
+	    "AtomicStoreSmin",
+	    "AtomicStoreUmax",
+	    "AtomicStoreUmin",
+	    "AtomicLoadAdd",
+	    "AtomicLoadClr",
+	    "AtomicLoadEor",
+	    "AtomicLoadSet",
+	    "AtomicLoadSmax",
+	    "AtomicLoadSmin",
+	    "AtomicLoadUmax",
+	    "AtomicLoadUmin",
+	    "AtomicSwap",
+	    "AtomicCompare",
+	    "PrefetchTgt",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"MakeReadUnique",
+		"WriteEvictOrEvict",
+		"WriteUniqueZero",
+		"WriteNoSnpZero",
+		"RESERVED",
+		"RESERVED",
+		"StashOnceSepShared",
+		"StashOnceSepUnique",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"ReadPreferUnique",
+		"RESERVED",
+		"RESERVED",
+		"RESERVED",
+		"WriteNoSnpFullCleanSh",
+		"WriteNoSnpFullCleanInv",
+		"WriteNoSnpFullCleanShPerSep",
+		"RESERVED",
+		"WriteUniqueFullCleanSh",
+		"RESERVED",
+		"WriteUniqueFullCleanShPerSep",
+		"RESERVED",
+		"WriteBackFullCleanSh",
+		"WriteBackFullCleanInv",
+		"WriteBackFullCleanShPerSep",
+		"RESERVED",
+		"WriteCleanFullCleanSh",
+		"RESERVED",
+		"WriteCleanFullCleanShPerSep",
+		"RESERVED",
+		"WriteNoSnpPtlCleanSh",
+		"WriteNoSnpPtlCleanInv",
+		"WriteNoSnpPtlCleanShPerSep",
+		"RESERVED",
+		"WriteUniquePtlCleanSh",
+		"RESERVED",
+		"WriteUniquePtlCleanShPerSep",
+};
+template <> const char* to_char<req_optype_e>(req_optype_e v) {
+	auto idx = static_cast<unsigned>(v);
+	if(idx<opc2str.size())
+		return opc2str[idx];
+	else return "RESERVED";
+}
 
     template <>
     const char *to_char<dat_optype_e>(dat_optype_e v)
@@ -296,24 +295,36 @@ namespace chi
         }
     }
 
-    template <>
-    const char *to_char<rsp_resptype_e>(rsp_resptype_e v)
-    {
-        switch (v)
-        {
-        case rsp_resptype_e::SnpResp_I:
-            return "SnpResp_I";
-        case rsp_resptype_e::SnpResp_SC:
-            return "SnpResp_SC";
-        case rsp_resptype_e::SnpResp_UC:
-            return "SnpResp_UC";
-        // case SnpResp_UD: return "SnpResp_UD";
-        case rsp_resptype_e::SnpResp_SD:
-            return "SnpResp_SD";
-        default:
-            return "UNKNOWN_rsp_resptype_e";
-        }
+template <> const char* to_char<rsp_resptype_e>(rsp_resptype_e v) {
+    switch(v) {
+    case rsp_resptype_e::SnpResp_I:
+        return "SnpResp_I";
+    case rsp_resptype_e::SnpResp_SC:
+        return "SnpResp_SC";
+    case rsp_resptype_e::SnpResp_UC:
+        return "SnpResp_UC";
+    // case SnpResp_UD: return "SnpResp_UD";
+    case rsp_resptype_e::SnpResp_SD:
+        return "SnpResp_SD";
+    default:
+        return "UNKNOWN_rsp_resptype_e";
     }
+}
+
+template <> const char* to_char<rsp_resperrtype_e>(rsp_resperrtype_e v) {
+    switch(v) {
+    case rsp_resperrtype_e::OK:
+        return "OK";
+    case rsp_resperrtype_e::EXOK:
+        return "EXOK";
+    case rsp_resperrtype_e::DERR:
+        return "DERR";
+    case rsp_resperrtype_e::NDERR:
+        return "NDERR";
+    default:
+        return "rsp_resperrtype_e";
+    }
+}
 
     template <>
     const char *to_char<credit_type_e>(credit_type_e v)
@@ -333,13 +344,36 @@ namespace chi
         }
     }
 
-    template <>
-    bool is_valid<chi::chi_ctrl_extension>(chi_ctrl_extension *ext)
-    {
-        auto sz = ext->req.get_size();
-        if (sz > 6)
-            return false;
-        return true;
+std::ostream& operator<<(std::ostream& os, const tlm::tlm_generic_payload& t) {
+    char const* ch =
+        t.get_command() == tlm::TLM_READ_COMMAND ? "AR" : (t.get_command() == tlm::TLM_WRITE_COMMAND ? "AW" : "");
+    os << "CMD:" << cmd_str[t.get_command()] << ", " << ch << "ADDR:0x" << std::hex << t.get_address() << ", TXLEN:0x"
+       << t.get_data_length();
+    if(auto ext = t.get_extension<chi::chi_ctrl_extension>()){
+        os << ", TXNID:"<<ext->get_txn_id();
+        os << ", OPC:"<<chi::to_char(ext->req.get_opcode());
+    } else if(auto ext = t.get_extension<chi::chi_snp_extension>()) {
+        os << ", TXNID:"<<ext->get_txn_id();
+        os << ", OPC:"<<chi::to_char(ext->req.get_opcode());
     }
+    os << " [ptr:" << &t << "]";
+    return os;
+}
+template <> const char* is_valid_msg<chi::chi_ctrl_extension>(chi_ctrl_extension* ext) {
+    auto sz = ext->req.get_size();
+    if(sz > 6)
+        return "Illegal size setting, maximum is 6";
+    switch(ext->req.get_opcode()) {
+    case req_optype_e::ReadNoSnp:
+    case req_optype_e::ReadNoSnpSep:
+    case req_optype_e::WriteNoSnpPtl:
+    case req_optype_e::WriteUniquePtl:
+    case req_optype_e::WriteUniquePtlStash:
+        break;
+    default:
+        if(!is_dataless(ext) && sz<6) return "Coherent transactions allow only cache line size data transfers";
+    }
+    return nullptr;
+}
 
 } // namespace chi

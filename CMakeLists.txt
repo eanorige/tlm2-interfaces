@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.20)
 if(POLICY CMP0048)
     cmake_policy(SET CMP0048 NEW)
 endif()
@@ -24,7 +24,7 @@ set(SCC_ARCHIVE_DIR_MODIFIER "" CACHE STRING "additional directory levels to sto
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(TARGET scc-sysc)
-    add_library(${PROJECT_NAME} STATIC
+    add_library(${PROJECT_NAME}
        chi/chi_tlm.cpp
        chi/pe/chi_rn_initiator.cpp
        chi/lwtr/chi_lwtr.cpp
@@ -32,21 +32,30 @@ if(TARGET scc-sysc)
        axi/fsm/base.cpp
        axi/pe/simple_initiator.cpp
        axi/pe/axi_target_pe.cpp
+       axi/pe/ace_target_pe.cpp
        axi/pe/ordered_target.cpp
        axi/pe/reordering_target.cpp
+       axi/pe/replay_target.cpp
        axi/pe/axi_initiator.cpp
        axi/scv/axi_ace_scv.cpp
        axi/lwtr/axi_ace_lwtr.cpp
        axi/checker/axi_protocol.cpp
        axi/checker/ace_protocol.cpp
     )
-    target_include_directories (${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-    target_compile_options(${PROJECT_NAME} PRIVATE -Wno-deprecated)
+    target_include_directories (${PROJECT_NAME} PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> # for headers when building
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}> # for client in install mode
+    )
+	if(NOT MSVC)
+		target_compile_options(${PROJECT_NAME} PRIVATE -Wno-deprecated)
+	endif()
     target_link_libraries(${PROJECT_NAME} PUBLIC scc-sysc)
+    set(TLM-INTERFACES_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/scc)
 else()
     add_library(${PROJECT_NAME} SHARED chi/chi_tlm.cpp)
     target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
     target_link_libraries(${PROJECT_NAME} PUBLIC SystemC::systemc)
+    set(TLM-INTERFACES_CMAKE_CONFIG_DIR ${CMAKE_INSTALL_LIBDIR}/cmake/tlm-interfaces)
 endif()
 
 #set_target_properties(${PROJECT_NAME} PROPERTIES
@@ -54,10 +63,11 @@ endif()
 #      FRAMEWORK FALSE
 #)
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} EXPORT tlm-interfaces-targets
         LIBRARY       DESTINATION ${CMAKE_INSTALL_LIBDIR}${SCC_LIBRARY_DIR_MODIFIER}
         ARCHIVE       DESTINATION ${CMAKE_INSTALL_LIBDIR}${SCC_LIBRARY_DIR_MODIFIER}${SCC_ARCHIVE_DIR_MODIFIER}
         PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
 install(
     DIRECTORY   ${CMAKE_CURRENT_SOURCE_DIR}/atp
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -88,4 +98,26 @@ configure_file("${CMAKE_ROOT}/Modules/CMakeConfigurableFile.in"
   @ONLY
 )
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/axi_chi.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+include(CMakePackageConfigHelpers)
+
+install(EXPORT tlm-interfaces-targets
+    DESTINATION ${TLM-INTERFACES_CMAKE_CONFIG_DIR})
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/tlm-interfaces-config-version.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_LIST_DIR}/tlm-interfaces-config.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/tlm-interfaces-config.cmake
+    INSTALL_DESTINATION ${TLM-INTERFACES_CMAKE_CONFIG_DIR}
+)
+
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/tlm-interfaces-config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/tlm-interfaces-config-version.cmake
+    DESTINATION ${TLM-INTERFACES_CMAKE_CONFIG_DIR})
 
